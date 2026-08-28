@@ -3,168 +3,496 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=11"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
-   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-   crossorigin=""/>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin=""/>
+
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
-   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
-   crossorigin=""></script>
+            integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+            crossorigin=""></script>
 </head>
+
 <body>
-    <div id="map" class="map" style="position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px;"></div>
-	
-    <script type="text/javascript">
-	
-    	var map = L.map('map').setView([49.148521,31.800675],14);
-		var this_webkit  = false;
-		var externalForm = null;
-		var marker = null;
-		var markerCenter = null;
-		
-		var linePoints = [];
-		var polyLine = null;
-		
-		var simpleIcon = L.icon(
-			{
-			iconUrl:'http://hoot.com.ua/ico/black-24dp/1x/baseline_place_black_24dp.png',
-			iconAnchor:[12,24],
-			popupAnchor:[0,-20]
-			});
-		var noIcon = L.icon(
-			{
-			iconUrl:'http://hoot.com.ua/ico/black-24dp/1x/baseline_not_listed_location_black_24dp.png',
-			iconAnchor:[12,24],
-			popupAnchor:[0,-20]
-			});
-		var walkIcon = L.icon(
-			{
-			 iconUrl:'http://hoot.com.ua/ico/black-24dp/1x/baseline_directions_walk_black_24dp.png',
-			 iconAnchor:[12,24]
-			});
 
-		
-    	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar', attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'}).addTo(map);
-    	
-	    	function clearMarkers(){
-	    	    if(marker!=null){
-				map.removeLayer(marker);
-				marker = null;	
-			};
-	    	}
-    	
-		function addMarkerDraggable(lat,lng,title){
-			marker = L.marker([lat,lng],{draggable:true}).bindPopup(title);
-			marker.on('dragend', function(event){
-						var location = event.target.getLatLng();
-						send_to_1C('dragend', [location.lat, location.lng])
-					  });
-			marker.addTo(map);
-			map.setView([lat,lng],10);
-		}
-		
-		function addMarker(lat,lng,title){
-			marker = L.marker([lat,lng]).bindPopup(title);
-			marker.addTo(map);
-			map.setView([lat,lng],10);
-		}
-		
-		function addSimpleMarker(lat,lng,title){
-			marker = L.marker([lat,lng],{icon: simpleIcon}).bindPopup(title);
-			marker.on('click', function(event){
-						var location = event.target.getLatLng();
-						send_to_1C('clickSimple', [location.lat, location.lng])
-					  });
-			marker.addTo(map);
-		}
-		
-		function addNoMarker(lat,lng,title){
-			marker = L.marker([lat,lng],{icon: noIcon}).bindPopup(title);
-			marker.on('click', function(event){
-						var location = event.target.getLatLng();
-						send_to_1C('clickNo', [location.lat, location.lng])
-					  });
-			marker.addTo(map);
-		}
-		
-		function addPoint(lat,lng){
-			linePoints.push([lat,lng]);
-		}
-		
-		function drawLine(){
-			if(polyLine != null){
-				polyLine.remove();
-			}
-			polyLine = L.polyline(linePoints, {color: 'red'});
-			polyLine.addTo(map);
-			map.fitBounds(polyLine.getBounds());
-		}
-		
-		function removeLine(){
-		 	linePoints = [];
-		 	if(polyLine != null){
-				polyLine.remove();
-			}
-		}
+<div id="map"
+     class="map"
+     style="position:absolute;top:0px;right:0px;bottom:0px;left:0px;">
+</div>
 
-		function removeWalkMarker(){
-			if (markerCenter != null)
-			{
-			  markerCenter.remove();
-			}
-		}
+<script type="text/javascript">
 
-		function walkTo(lat,lng){
-			if (markerCenter != null)
-			{
-			  markerCenter.remove();
-			}
-			markerCenter = L.marker([lat,lng],{icon:walkIcon});
-			markerCenter.addTo(map);
-			map.setView([lat,lng]);
-		}
-		
-		function setView(lat,lng,zoom){
-			map.setView([lat,lng],zoom);
-		}
-		
-		function makeZoom(){
-    			map.zoomIn(1);
-    			return map.getCenter();
-    		}
-		
-		function noDataPopup(text){
-			var center = L.latLng(49.148521,31.800675);
-			map.setView(center,6);
-			var popup = L.popup()
-					    .setLatLng(center)
-					    .setContent(text)
-					    .openOn(map);
-		}
-		
-		function setProperty(name,action) {
-			switch (name) {
-				case 'webkit': this_webkit = action=='up' ? true : false; break;
-				default 	 : break;
-			}
-		}
-		
-		function send_to_1C(name,data){ 
-			if(this_webkit){
-				document.getElementById('message_name').innerHTML  = name;
-				document.getElementById('message_data').innerHTML  = data;
-			} else {
-				var evt = document.createEventObject();
-				evt.propertyName 	= name;
-				evt.data    		= data;
-				evt.cancelBubble 	= true;
-				evt.returnValue  	= false;
-				document.fireEvent('onclick',evt);
-			};
-		};
+    var map = L.map('map').setView([49.148521,31.800675],14);
 
-    </script>
-	
-<div id='message_name' style='display: none'></div>
-<div id='message_data' style='display: none'></div>
+    var this_webkit = false;
+    var externalForm = null;
+
+    var marker = null;
+    var markerCenter = null;
+
+    var linePoints = [];
+    var polyLine = null;
+
+    var simpleIcon = L.icon({
+        iconUrl:'http://hoot.com.ua/ico/black-24dp/1x/baseline_place_black_24dp.png',
+        iconAnchor:[12,24],
+        popupAnchor:[0,-20]
+    });
+
+    var noIcon = L.icon({
+        iconUrl:'http://hoot.com.ua/ico/black-24dp/1x/baseline_not_listed_location_black_24dp.png',
+        iconAnchor:[12,24],
+        popupAnchor:[0,-20]
+    });
+
+    var walkIcon = L.icon({
+        iconUrl:'http://hoot.com.ua/ico/black-24dp/1x/baseline_directions_walk_black_24dp.png',
+        iconAnchor:[12,24]
+    });
+
+
+    L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}',
+        {
+            foo:'bar',
+            attribution:'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }
+    ).addTo(map);
+
+
+    function clearMarkers(){
+
+        if(marker != null){
+            map.removeLayer(marker);
+            marker = null;
+        }
+
+    }
+
+
+    function addMarkerDraggable(lat,lng,title){
+
+        marker = L.marker(
+            [lat,lng],
+            {draggable:true}
+        ).bindPopup(title);
+
+        marker.on('dragend', function(event){
+
+            var location = event.target.getLatLng();
+
+            send_to_1C(
+                'dragend',
+                [location.lat, location.lng]
+            );
+
+        });
+
+        marker.addTo(map);
+
+        map.setView([lat,lng],10);
+    }
+
+
+    function addMarker(lat,lng,title){
+
+        marker = L.marker([lat,lng])
+            .bindPopup(title);
+
+        marker.addTo(map);
+
+        map.setView([lat,lng],10);
+    }
+
+
+    function addSimpleMarker(lat,lng,title){
+
+        marker = L.marker(
+            [lat,lng],
+            {icon:simpleIcon}
+        ).bindPopup(title);
+
+        marker.on('click', function(event){
+
+            var location = event.target.getLatLng();
+
+            send_to_1C(
+                'clickSimple',
+                [location.lat, location.lng]
+            );
+
+        });
+
+        marker.addTo(map);
+    }
+
+
+    function addNoMarker(lat,lng,title){
+
+        marker = L.marker(
+            [lat,lng],
+            {icon:noIcon}
+        ).bindPopup(title);
+
+        marker.on('click', function(event){
+
+            var location = event.target.getLatLng();
+
+            send_to_1C(
+                'clickNo',
+                [location.lat, location.lng]
+            );
+
+        });
+
+        marker.addTo(map);
+    }
+
+
+    /*
+     * ДОДАВАННЯ ТОЧКИ МАРШРУТУ
+     */
+    function addPoint(lat,lng){
+
+        linePoints.push([
+            parseFloat(lat),
+            parseFloat(lng)
+        ]);
+
+    }
+
+
+    /*
+     * ПОБУДОВА МАРШРУТУ ПО ДОРОГАХ
+     *
+     * Використовується OSRM.
+     *
+     * ВАЖЛИВО:
+     * Leaflet = [latitude, longitude]
+     * OSRM     = longitude,latitude
+     */
+    function drawLine(){
+
+        if(linePoints.length < 2){
+
+            console.log('Для побудови маршруту потрібно мінімум 2 точки');
+
+            return;
+        }
+
+
+        /*
+         * Видаляємо попередній маршрут
+         */
+        if(polyLine != null){
+
+            map.removeLayer(polyLine);
+
+            polyLine = null;
+        }
+
+
+        /*
+         * Перетворюємо координати для OSRM:
+         *
+         * було:
+         * [lat,lng]
+         *
+         * потрібно:
+         * lng,lat
+         */
+        var coordinates = linePoints
+            .map(function(point){
+
+                return point[1] + ',' + point[0];
+
+            })
+            .join(';');
+
+
+        /*
+         * Запит до OSRM
+         */
+        var url =
+            'https://router.project-osrm.org/route/v1/driving/' +
+            coordinates +
+            '?overview=full&geometries=geojson&steps=false';
+
+
+        console.log('OSRM:', url);
+
+
+        fetch(url)
+
+            .then(function(response){
+
+                if(!response.ok){
+
+                    throw new Error(
+                        'HTTP error: ' + response.status
+                    );
+
+                }
+
+                return response.json();
+
+            })
+
+            .then(function(data){
+
+                console.log('OSRM response:', data);
+
+
+                /*
+                 * Перевіряємо результат
+                 */
+                if(data.code !== 'Ok'){
+
+                    console.error(
+                        'OSRM помилка:',
+                        data.code,
+                        data.message || ''
+                    );
+
+                    return;
+                }
+
+
+                if(!data.routes || data.routes.length === 0){
+
+                    console.error(
+                        'OSRM не повернув маршрут'
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * Беремо перший маршрут
+                 */
+                var route = data.routes[0];
+
+
+                /*
+                 * GeoJSON координати мають вигляд:
+                 *
+                 * [longitude, latitude]
+                 *
+                 * Leaflet GeoJSON це розуміє автоматично.
+                 */
+                polyLine = L.geoJSON(
+                    route.geometry,
+                    {
+                        style:{
+                            color:'red',
+                            weight:5,
+                            opacity:0.85
+                        }
+                    }
+                );
+
+
+                polyLine.addTo(map);
+
+
+                /*
+                 * Показуємо весь маршрут
+                 */
+                map.fitBounds(
+                    polyLine.getBounds(),
+                    {
+                        padding:[30,30]
+                    }
+                );
+
+
+                /*
+                 * Передаємо інформацію назад у 1С
+                 *
+                 * distance = метри
+                 * duration = секунди
+                 */
+                send_to_1C(
+                    'route',
+                    [
+                        route.distance,
+                        route.duration
+                    ]
+                );
+
+
+            })
+
+            .catch(function(error){
+
+                console.error(
+                    'Помилка побудови маршруту:',
+                    error
+                );
+
+                send_to_1C(
+                    'routeError',
+                    error.toString()
+                );
+
+            });
+
+    }
+
+
+    /*
+     * ВИДАЛЕННЯ МАРШРУТУ
+     */
+    function removeLine(){
+
+        linePoints = [];
+
+
+        if(polyLine != null){
+
+            map.removeLayer(polyLine);
+
+            polyLine = null;
+        }
+
+    }
+
+
+    function removeWalkMarker(){
+
+        if(markerCenter != null){
+
+            markerCenter.remove();
+
+            markerCenter = null;
+        }
+
+    }
+
+
+    function walkTo(lat,lng){
+
+        if(markerCenter != null){
+
+            markerCenter.remove();
+        }
+
+        markerCenter = L.marker(
+            [lat,lng],
+            {icon:walkIcon}
+        );
+
+        markerCenter.addTo(map);
+
+        map.setView([lat,lng]);
+    }
+
+
+    function setView(lat,lng,zoom){
+
+        map.setView(
+            [lat,lng],
+            zoom
+        );
+
+    }
+
+
+    function makeZoom(){
+
+        map.zoomIn(1);
+
+        return map.getCenter();
+
+    }
+
+
+    function noDataPopup(text){
+
+        var center =
+            L.latLng(
+                49.148521,
+                31.800675
+            );
+
+        map.setView(
+            center,
+            6
+        );
+
+        var popup = L.popup()
+            .setLatLng(center)
+            .setContent(text)
+            .openOn(map);
+
+    }
+
+
+    function setProperty(name,action){
+
+        switch(name){
+
+            case 'webkit':
+
+                this_webkit =
+                    action == 'up'
+                    ? true
+                    : false;
+
+                break;
+
+            default:
+
+                break;
+        }
+
+    }
+
+
+    function send_to_1C(name,data){
+
+        if(this_webkit){
+
+            document.getElementById(
+                'message_name'
+            ).innerHTML = name;
+
+            document.getElementById(
+                'message_data'
+            ).innerHTML = data;
+
+        }else{
+
+            var evt =
+                document.createEventObject();
+
+            evt.propertyName = name;
+
+            evt.data = data;
+
+            evt.cancelBubble = true;
+
+            evt.returnValue = false;
+
+            document.fireEvent(
+                'onclick',
+                evt
+            );
+
+        }
+
+    }
+
+</script>
+
+
+<div id="message_name"
+     style="display:none"></div>
+
+<div id="message_data"
+     style="display:none"></div>
+
 </body>
 </html>
