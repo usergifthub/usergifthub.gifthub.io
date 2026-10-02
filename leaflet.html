@@ -91,8 +91,10 @@
 		}
 		
 		function drawLine(){
+
+    alert('Кількість точок: ' + linePoints.length);
+
     if(linePoints.length < 2){
-        alert('Для побудови маршруту потрібно мінімум 2 точки');
         return;
     }
 
