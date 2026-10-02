@@ -91,13 +91,79 @@
 		}
 		
 		function drawLine(){
-			if(polyLine != null){
-				polyLine.remove();
-			}
-			polyLine = L.polyline(linePoints, {color: 'red'});
-			polyLine.addTo(map);
-			map.fitBounds(polyLine.getBounds());
-		}
+    if(linePoints.length < 2){
+        alert('Для побудови маршруту потрібно мінімум 2 точки');
+        return;
+    }
+
+    var coordinates = '';
+
+    for(var i = 0; i < linePoints.length; i++){
+        if(i > 0){
+            coordinates += ';';
+        }
+
+        coordinates += linePoints[i][1] + ',' + linePoints[i][0];
+    }
+
+    var url = 'https://router.project-osrm.org/route/v1/driving/' +
+              coordinates +
+              '?overview=full&geometries=geojson';
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.open('GET', url, true);
+
+    xhr.onreadystatechange = function(){
+
+        if(xhr.readyState != 4){
+            return;
+        }
+
+        if(xhr.status != 200){
+            alert('Помилка OSRM: ' + xhr.status);
+            return;
+        }
+
+        try{
+            var result = JSON.parse(xhr.responseText);
+
+            if(result.code != 'Ok'){
+                alert('OSRM не зміг побудувати маршрут: ' + result.code);
+                return;
+            }
+
+            var route = result.routes[0];
+
+            var routePoints = [];
+
+            for(var i = 0; i < route.geometry.coordinates.length; i++){
+                routePoints.push([
+                    route.geometry.coordinates[i][1],
+                    route.geometry.coordinates[i][0]
+                ]);
+            }
+
+            if(polyLine != null){
+                polyLine.remove();
+            }
+
+            polyLine = L.polyline(routePoints, {
+                color: 'red',
+                weight: 4
+            });
+
+            polyLine.addTo(map);
+
+            map.fitBounds(polyLine.getBounds());
+
+        } catch(e) {
+            alert('Помилка обробки відповіді OSRM: ' + e.message);
+        }
+    };
+
+    xhr.send();
+}
 		
 		function removeLine(){
 		 	linePoints = [];
