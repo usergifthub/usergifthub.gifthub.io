@@ -87,8 +87,14 @@
 		}
 		
 		function addPoint(lat,lng){
-			linePoints.push([lat,lng]);
-		}
+    linePoints.push([lat,lng]);
+
+    alert(
+        'Додано точку №' + linePoints.length +
+        '\nШирота: ' + lat +
+        '\nДовгота: ' + lng
+    );
+}
 		
 		function drawLine(){
 
