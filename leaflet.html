@@ -43,7 +43,7 @@
 			});
 
 		
-    	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar', attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'}).addTo(map);
+    	L.tileLayer('https://{s}.tile.google.com/maps/{z}/{x}/{y}.png?{foo}', {foo: 'bar', attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'}).addTo(map);
     	
 	    	function clearMarkers(){
 	    	    if(marker!=null){
@@ -87,101 +87,24 @@
 		}
 		
 		function addPoint(lat,lng){
-            linePoints.push([lat,lng]);
-
-            alert(
-                'Додано точку №' + linePoints.length +
-                '\nШирота: ' + lat +
-                '\nДовгота: ' + lng
-            );
-        }
+			linePoints.push([lat,lng]);
+		}
 		
 		function drawLine(){
-
-    alert('Кількість точок: ' + linePoints.length);
-
-    if(linePoints.length < 2){
-        return;
-    }
-
-    var coordinates = '';
-
-    for(var i = 0; i < linePoints.length; i++){
-        if(i > 0){
-            coordinates += ';';
-        }
-
-        coordinates += linePoints[i][1] + ',' + linePoints[i][0];
-    }
-
-    var url = 'https://router.project-osrm.org/route/v1/driving/' +
-              coordinates +
-              '?overview=full&geometries=geojson';
-
-    var xhr = new XMLHttpRequest();
-
-    xhr.open('GET', url, true);
-
-    xhr.onreadystatechange = function(){
-
-        if(xhr.readyState != 4){
-            return;
-        }
-
-        if(xhr.status != 200){
-            alert('Помилка OSRM: ' + xhr.status);
-            return;
-        }
-
-        try{
-            var result = JSON.parse(xhr.responseText);
-
-            if(result.code != 'Ok'){
-                alert('OSRM не зміг побудувати маршрут: ' + result.code);
-                return;
-            }
-
-            var route = result.routes[0];
-
-            var routePoints = [];
-
-            for(var i = 0; i < route.geometry.coordinates.length; i++){
-                routePoints.push([
-                    route.geometry.coordinates[i][1],
-                    route.geometry.coordinates[i][0]
-                ]);
-            }
-
-            if(polyLine != null){
-                polyLine.remove();
-            }
-
-            polyLine = L.polyline(routePoints, {
-                color: 'red',
-                weight: 4
-            });
-
-            polyLine.addTo(map);
-
-            map.fitBounds(polyLine.getBounds());
-
-        } catch(e) {
-            alert('Помилка обробки відповіді OSRM: ' + e.message);
-        }
-    };
-
-    xhr.send();
-}
+			if(polyLine != null){
+				polyLine.remove();
+			}
+			polyLine = L.polyline(linePoints, {color: 'red'});
+			polyLine.addTo(map);
+			map.fitBounds(polyLine.getBounds());
+		}
 		
 		function removeLine(){
-    alert('removeLine працює');
-
-    linePoints = [];
-
-    if(polyLine != null){
-        polyLine.remove();
-    }
-}
+		 	linePoints = [];
+		 	if(polyLine != null){
+				polyLine.remove();
+			}
+		}
 
 		function removeWalkMarker(){
 			if (markerCenter != null)
