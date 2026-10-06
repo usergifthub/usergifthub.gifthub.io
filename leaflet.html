@@ -102,19 +102,20 @@
 		}
 		
 		function testOSRM(){
-    var url = "https://example.com/";
+    var url = "https://router.project-osrm.org/route/v1/driving/26.593025,51.330443;26.592092,51.329614?overview=full&steps=false&geometries=geojson";
+
     var xhr = new XMLHttpRequest();
 
-    xhr.open("GET", url, true);
+    try {
+        xhr.open("GET", url, false);
+        xhr.send();
 
-    xhr.onreadystatechange = function(){
-        if(xhr.readyState == 4){
-            alert("OSRM статус: " + xhr.status + "\n\n" + xhr.responseText);
-        }
-    };
-
-    xhr.send();
-} 
+        alert("OSRM статус: " + xhr.status + "\n\n" + xhr.responseText);
+    }
+    catch(e) {
+        alert("ПОМИЛКА:\n" + e.message);
+    }
+}
 		
 		function removeLine(){
 		 	linePoints = [];
