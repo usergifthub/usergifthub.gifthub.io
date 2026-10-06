@@ -101,8 +101,10 @@
 			map.fitBounds(polyLine.getBounds());
 		}
 		
-		function testOSRM(){
-    var url = "http://routing.openstreetmap.de/routed-car/route/v1/driving/26.593025,51.330443;26.592092,51.329614?overview=full&steps=false&geometries=geojson";
+	function buildOSRMRoute(pointsString){
+    var url = "http://routing.openstreetmap.de/routed-car/route/v1/driving/" +
+              pointsString +
+              "?overview=full&steps=false&geometries=geojson";
 
     var xhr = new XMLHttpRequest();
 
@@ -113,31 +115,36 @@
         if(xhr.status == 200){
             var data = JSON.parse(xhr.responseText);
 
-            if(data.code == "Ok"){
-                linePoints = [];
+            if(data.code == "Ok" &&
+               data.routes &&
+               data.routes.length > 0){
 
                 var coordinates = data.routes[0].geometry.coordinates;
 
                 for(var i = 0; i < coordinates.length; i++){
-                    // OSRM: [долгота, широта]
-                    // Leaflet: [широта, долгота]
-                    addPoint(coordinates[i][1], coordinates[i][0]);
+                    // OSRM: [довгота, широта]
+                    // Leaflet: [широта, довгота]
+                    addPoint(
+                        coordinates[i][1],
+                        coordinates[i][0]
+                    );
                 }
 
-                drawLine();
-
-                alert("Маршрут побудовано!\nТочок геометрії: " + coordinates.length);
+                return true;
             }
             else{
                 alert("OSRM помилка: " + data.code);
+                return false;
             }
         }
         else{
             alert("HTTP статус: " + xhr.status);
+            return false;
         }
     }
     catch(e){
         alert("ПОМИЛКА:\n" + e.message);
+        return false;
     }
 }
 		
