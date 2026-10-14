@@ -147,7 +147,64 @@
         return false;
     }
 }
-		
+		function optimizeOSRMRoute(pointsString){
+    var url = "http://routing.openstreetmap.de/routed-car/trip/v1/driving/" +
+              pointsString +
+              "?roundtrip=false&source=first&destination=last";
+
+    var xhr = new XMLHttpRequest();
+
+    try {
+        xhr.open("GET", url, false);
+        xhr.send();
+
+        if(xhr.status == 200){
+            var data = JSON.parse(xhr.responseText);
+
+            if(data.code == "Ok" &&
+               data.trips &&
+               data.trips.length > 0){
+
+                var result = [];
+
+                for(var i = 0; i < data.waypoints.length; i++){
+                    result.push({
+                        name: data.waypoints[i].name,
+                        location: data.waypoints[i].location,
+                        waypoint_index: data.waypoints[i].waypoint_index
+                    });
+                }
+
+                result.sort(function(a, b){
+                    return a.waypoint_index - b.waypoint_index;
+                });
+
+                var order = [];
+
+                for(var j = 0; j < result.length; j++){
+                    order.push((j + 1) + ". " + result[j].location);
+                }
+
+                alert("OSRM знайшов порядок точок:\n\n" +
+                      order.join("\n"));
+
+                return true;
+            }
+            else{
+                alert("Помилка оптимізації OSRM: " + data.code);
+                return false;
+            }
+        }
+        else{
+            alert("HTTP статус: " + xhr.status);
+            return false;
+        }
+    }
+    catch(e){
+        alert("Помилка оптимізації:\n" + e.message);
+        return false;
+    }
+}
 		function removeLine(){
 		 	linePoints = [];
 		 	if(polyLine != null){
